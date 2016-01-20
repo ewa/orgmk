@@ -58,6 +58,18 @@
           (ignore-errors
             (package-install pkg))))))
 
+;; This is ugly!  There really should be a way to detect the
+;; appropriate language mode and load it when tangling, rather than
+;; having to pre-load *every* possible generated language.  But, since
+;; I'm just using protobuf, I'll deal
+(when (locate-library "package")
+  (unless (locate-library "protobuf-mode")    ; for syntax highlighting in org2html
+    (let ((pkg 'protobuf-mode))
+      (if (yes-or-no-p (format "Install package `%s'? " pkg))
+          (ignore-errors
+            (package-install pkg))))))
+
+
 ;; version info
 (let ((org-install-dir (file-name-directory (locate-library "org-loaddefs")))
       (org-dir (file-name-directory (locate-library "org")))) ; org.(el|elc)
@@ -70,6 +82,11 @@
 (require 'org)
 (require 'org-clock)
 (require 'ox)
+
+;; For reasons unknown to me (Eric), when protobuf-mode is loaded here, it runs into this bug: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18845.  Protobuf uses cc-mode, cc-mode requires cl, and cl isn't getting loaded.  So we brute-force it.
+(require 'cl)
+
+(require 'protobuf-mode)
 
 (add-to-list 'auto-mode-alist '("\\.txt\\'" . org-mode))
 
